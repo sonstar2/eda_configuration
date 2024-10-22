@@ -54,6 +54,11 @@ options:
         - The token needed to utilize the SCM URL.
       required: False
       type: str
+    organization:
+      description:
+        - The name of organization.
+      required: Ture
+      type: str
     state:
       description:
         - Desired state of the resource.
@@ -72,6 +77,7 @@ EXAMPLES = """
     description: my awesome project
     url: https://github.com/ansible/ansible-rulebook.git
     credential: test_token
+    organization: Default
     state: present
     eda_host: eda.example.com
     eda_username: admin
@@ -91,6 +97,7 @@ def main():
         url=dict(required=True, aliases=["scm_url"]),
         tls_validation=dict(type="bool", default=True),
         credential=dict(),
+        organization=dict(),
         state=dict(choices=["present", "absent"], default="present"),
     )
 
@@ -101,6 +108,7 @@ def main():
     name = module.params.get("name")
     new_name = module.params.get("new_name")
     state = module.params.get("state")
+    organization = module.params.get("organization")
 
     new_fields = {}
 
@@ -126,6 +134,9 @@ def main():
 
     if module.params.get("credential") is not None:
         new_fields["credential_id"] = module.resolve_name_to_id("credentials", module.params.get("credential"))
+
+    if module.params.get("organization") is not None:
+        new_fields["organization_id"] = module.resolve_name_to_id("organizations", module.params.get("organization"))
 
     # If the state was present and we can let the module build or update the existing item, this will return on its own
     module.create_or_update_if_needed(
